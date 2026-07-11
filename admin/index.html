@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Dev Center</title>
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+
+<body>
+
+  <div class="auth-overlay" id="auth-loading">
+    <div class="auth-box">
+      <div class="auth-spinner"></div>
+      <h2>LOADING...</h2>
+      <p style="font-family:'Space Mono',monospace;font-size:.72rem">Verification des acces administrateur.</p>
+    </div>
+  </div>
+
+  <div class="auth-overlay" id="auth-login" style="display:none">
+    <div class="auth-box">
+      <div class="auth-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg>
+      </div>
+      <h2>ACCES_ADMIN</h2>
+      <p>Connectez-vous avec votre email ou votre compte Discord pour acceder au tableau de bord d'administration.
+      </p>
+
+      <form class="admin-form" style="text-align:left;margin-bottom:0" onsubmit="return handleEmailLogin(event)">
+        <div>
+          <label class="form-label">Email</label>
+          <input class="admin-input" type="email" id="login-email" placeholder="vous@exemple.com" autocomplete="email"
+            required />
+        </div>
+        <div>
+          <label class="form-label">Mot de passe</label>
+          <input class="admin-input" type="password" id="login-password" placeholder="••••••••"
+            autocomplete="current-password" required />
+        </div>
+        <p id="login-error"
+          style="display:none;color:var(--red);font-family:'Space Mono',monospace;font-size:.68rem;margin:-.4rem 0 0">
+        </p>
+        <button type="submit" class="btn-admin primary" id="email-submit-btn">CONNEXION</button>
+        <a href="#" id="auth-mode-toggle" onclick="return toggleAuthMode(event)"
+          style="text-align:center;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.65rem;text-decoration:none">
+          Pas de compte ? Creer un compte
+        </a>
+      </form>
+
+      <div style="display:flex;align-items:center;gap:.75rem;margin:1.4rem 0;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.08em">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        OU
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <div class="auth-actions">
+        <button class="btn-admin btn-discord" onclick="Auth.loginWithDiscord()">CONNEXION_DISCORD</button>
+        <a class="btn-admin ghost" href="../index.html" style="text-decoration:none;justify-content:center">&larr;
+          RETOUR_SITE</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-overlay" id="auth-denied" style="display:none">
+    <div class="auth-box">
+      <div class="auth-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+        </svg>
+      </div>
+      <h2>ACCES_REFUSE</h2>
+      <p>Votre compte est connecte mais ne possede pas les droits administrateur necessaires.</p>
+      <div class="auth-actions">
+        <button class="btn-admin danger" onclick="logoutAndReturn()">SE_DECONNECTER</button>
+        <a class="btn-admin ghost" href="../index.html" style="text-decoration:none;justify-content:center">&larr;
+          RETOUR_SITE</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-layout" id="admin-layout" style="display:none">
+
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect width="16" height="16" fill="rgba(0,245,255,0.1)" />
+          <path d="M3 8l4 4 6-6" stroke="var(--cyan)" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        Dev<span>Center</span>
+        <span class="admin-badge">ADMIN</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">Principal</div>
+        <a class="sidebar-link active" href="index.html" onclick="return showPage('dashboard',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+          </span> Dashboard
+        </a>
+        <a class="sidebar-link" href="#" onclick="return showPage('orders',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
+            </svg>
+          </span> Commandes
+          <span class="badge" id="pending-badge">—</span>
+        </a>
+        <a class="sidebar-link" href="#" onclick="return showPage('users',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87" />
+              <path d="M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          </span> Utilisateurs
+        </a>
+        <div class="sidebar-section">Contenu</div>
+        <a class="sidebar-link" href="#" onclick="return showPage('services',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+            </svg>
+          </span> Services
+        </a>
+        <a class="sidebar-link" href="#" onclick="return showPage('testimonials',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+          </span> Temoignages
+        </a>
+        <div class="sidebar-section">Systeme</div>
+        <a class="sidebar-link" href="#" onclick="return showPage('settings',this)">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+          </span> Parametres
+        </a>
+        <a class="sidebar-link" href="../index.html">
+          <span class="si-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+            </svg>
+          </span> Voir le site
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="su-avatar" id="su-avatar">AD</div>
+          <div>
+            <div class="su-name" id="su-name">Admin</div>
+            <div class="su-role" id="su-role">SUPER_ADMIN</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="demo-banner" id="demo-banner" style="display:none">
+        [DEMO_MODE] — Supabase non configure : donnees locales, non persistees.
+      </div>
+      <header class="admin-header">
+        <div class="admin-header-left">
+          <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()"
+            aria-label="Menu">&#9776;</button>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="admin-header-right">
+          <button class="btn-admin ghost" onclick="adminTheme()">THEME</button>
+          <button class="btn-admin ghost" onclick="refreshData()">REFRESH</button>
+          <button class="btn-admin danger" onclick="confirmLogout()">LOGOUT</button>
+        </div>
+      </header>
+
+      <div class="admin-content">
+
+        <div id="page-dashboard">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Dashboard</span></div>
+          <div class="stats-cards" id="stats-cards">
+            <div class="stat-card">
+              <div class="sc-label">TOTAL_ORDERS</div>
+              <div class="sc-value blue" id="stat-orders">—</div>
+              <div class="sc-delta up">+ Ce mois</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">PENDING</div>
+              <div class="sc-value yellow" id="stat-pending">—</div>
+              <div class="sc-delta">A traiter</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">USERS</div>
+              <div class="sc-value green" id="stat-users">—</div>
+              <div class="sc-delta up">+ Cette semaine</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">UPTIME</div>
+              <div class="sc-value" style="color:var(--cyan)">99.9%</div>
+              <div class="sc-delta up">NOMINAL</div>
+            </div>
+          </div>
+          <div class="panel-grid">
+            <div class="panel" style="grid-column:1/-1">
+              <div class="panel-header">
+                <h2>Commandes recentes</h2>
+                <button class="btn-admin ghost" onclick="return showPage('orders',null)">VOIR_TOUT &rsaquo;</button>
+              </div>
+              <div class="panel-body" style="padding:0">
+                <table class="data-table" id="recent-orders-table">
+                  <thead>
+                    <tr>
+                      <th>#ID</th>
+                      <th>Client</th>
+                      <th>Service</th>
+                      <th>Statut</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-orders-body">
+                    <tr>
+                      <td colspan="6"
+                        style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.72rem">
+                        LOADING...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-orders" style="display:none">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Commandes</span></div>
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn-admin ghost active-filter" onclick="filterOrders('all',this)">ALL</button>
+              <button class="btn-admin ghost" onclick="filterOrders('pending',this)">PENDING</button>
+              <button class="btn-admin ghost" onclick="filterOrders('in_progress',this)">IN_PROGRESS</button>
+              <button class="btn-admin ghost" onclick="filterOrders('completed',this)">COMPLETED</button>
+            </div>
+            <input class="admin-input" style="max-width:220px" type="text" placeholder="> search..."
+              oninput="searchOrders(this.value)" />
+          </div>
+          <div class="panel">
+            <div class="panel-body" style="padding:0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#ID</th>
+                    <th>Client</th>
+                    <th>Service</th>
+                    <th>Description</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-body">
+                  <tr>
+                    <td colspan="7"
+                      style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.72rem">
+                      LOADING...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-users" style="display:none">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Utilisateurs</span></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem">
+            <input class="admin-input" style="max-width:220px" type="text" placeholder="> search..."
+              oninput="searchUsers(this.value)" />
+          </div>
+          <div class="panel">
+            <div class="panel-body" style="padding:0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Utilisateur</th>
+                    <th>Discord</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-body">
+                  <tr>
+                    <td colspan="7"
+                      style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.72rem">
+                      LOADING...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-services" style="display:none">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Services</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;align-items:start">
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Ajouter un service</h2>
+              </div>
+              <div class="panel-body">
+                <form class="admin-form" id="service-form" onsubmit="addService(event)">
+                  <div><label class="form-label">Nom du service</label><input class="admin-input" name="name"
+                      placeholder="Serveur Discord Premium" required /></div>
+                  <div><label class="form-label">Description</label><textarea class="admin-textarea" name="description"
+                      placeholder="Description..." required></textarea></div>
+                  <div><label class="form-label">Categorie</label>
+                    <select class="admin-select" name="type">
+                      <option value="discord">Discord</option>
+                      <option value="web">Web</option>
+                      <option value="bot">Bot</option>
+                      <option value="other">Autre</option>
+                    </select>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <label class="form-label" style="margin:0">SERVICE_ACTIVE</label>
+                    <label class="toggle"><input type="checkbox" name="active" checked /><span
+                        class="toggle-slider"></span></label>
+                  </div>
+                  <button type="submit" class="btn-admin primary">+ ADD_SERVICE</button>
+                </form>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Services actuels</h2>
+              </div>
+              <div class="panel-body" style="padding:0">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Type</th>
+                      <th>Actif</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="services-body">
+                    <tr>
+                      <td colspan="4"
+                        style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.72rem">
+                        LOADING...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-testimonials" style="display:none">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Temoignages</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;align-items:start">
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Ajouter un temoignage</h2>
+              </div>
+              <div class="panel-body">
+                <form class="admin-form" onsubmit="addTesti(event)">
+                  <div><label class="form-label">Nom</label><input class="admin-input" name="name"
+                      placeholder="Jean Dupont" required /></div>
+                  <div><label class="form-label">Role</label><input class="admin-input" name="role"
+                      placeholder="FULL-STACK_DEV" /></div>
+                  <div><label class="form-label">Note (1-5)</label><input class="admin-input" name="stars" type="number"
+                      min="1" max="5" value="5" /></div>
+                  <div><label class="form-label">Temoignage</label><textarea class="admin-textarea" name="text" required
+                      placeholder="Son temoignage..."></textarea></div>
+                  <button type="submit" class="btn-admin primary">+ ADD_TESTIMONIAL</button>
+                </form>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Temoignages publies</h2>
+              </div>
+              <div class="panel-body" id="testi-list"
+                style="display:flex;flex-direction:column;gap:.75rem;min-height:100px">
+                <p
+                  style="color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.7rem;text-align:center;padding:1rem">
+                  LOADING...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-settings" style="display:none">
+          <div class="breadcrumb"><span>Admin</span><span class="sep">/</span><span>Parametres</span></div>
+          <div class="panel-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Parametres du site</h2>
+              </div>
+              <div class="panel-body">
+                <div class="admin-form">
+                  <div><label class="form-label">Nom du site</label><input class="admin-input" id="site-name-input" value="Dev Center" />
+                  </div>
+                  <div><label class="form-label">Slogan</label><input class="admin-input" id="tagline-input"
+                      value="Votre espace de developpement tout-en-un." /></div>
+                  <div><label class="form-label">Discord Invite URL</label><input class="admin-input" id="discord-invite-input"
+                      value="https://discord.gg/H2tqMh86YP" /></div>
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-top:1px solid var(--border)">
+                    <div>
+                      <div style="font-family:'Space Mono',monospace;font-size:.72rem;text-transform:uppercase">
+                        MAINTENANCE_MODE</div>
+                      <div class="form-label" style="margin:0">Afficher une page de maintenance</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" id="maintenance-toggle" /><span class="toggle-slider"></span></label>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                      <div style="font-family:'Space Mono',monospace;font-size:.72rem;text-transform:uppercase">
+                        ACCEPT_ORDERS</div>
+                      <div class="form-label" style="margin:0">Accepter les commandes</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" id="accept-orders-toggle" checked /><span class="toggle-slider"></span></label>
+                  </div>
+                  <button class="btn-admin primary" onclick="saveSiteSettings()">SAVE_SETTINGS</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Configuration Supabase</h2>
+              </div>
+              <div class="panel-body">
+                <div class="admin-form">
+                  <div>
+                    <label class="form-label">Statut de connexion</label>
+                    <div id="sb-status"
+                      style="padding:.6rem 1rem;border:1px solid var(--border);background:var(--input-bg);font-family:'Space Mono',monospace;font-size:.72rem">
+                      —</div>
+                  </div>
+                  <button class="btn-admin primary" onclick="testSupabase()">TEST_CONNECTION</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Discord OAuth</h2>
+              </div>
+              <div class="panel-body">
+                <div class="admin-form">
+                  <div><label class="form-label">Client ID Discord</label><input class="admin-input" id="discord-client-id-input"
+                      placeholder="123456789012345678" /></div>
+                  <div><label class="form-label">Redirect URI</label><input class="admin-input"
+                      value="/pages/auth-callback.html" readonly /></div>
+                  <div style="padding:.9rem;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15)">
+                    <p style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--green);line-height:1.7">
+                      [OK] Configurez le provider Discord dans Supabase → Authentication → Providers, puis donnez le
+                      role <code style="color:var(--cyan)">admin</code> dans la table <code
+                        style="color:var(--cyan)">profiles</code>.</p>
+                  </div>
+                  <button class="btn-admin primary"
+                    onclick="saveDiscordConfig()">SAVE_CONFIG</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Actions admin</h2>
+              </div>
+              <div class="panel-body" style="display:flex;flex-direction:column;gap:.6rem">
+                <button class="btn-admin ghost" onclick="exportData()"
+                  style="justify-content:flex-start;width:100%">EXPORT_DATA (JSON)</button>
+                <button class="btn-admin ghost" onclick="flushCache()"
+                  style="justify-content:flex-start;width:100%">FLUSH_CACHE</button>
+                <button class="btn-admin ghost" onclick="sendTestEmail()"
+                  style="justify-content:flex-start;width:100%">SEND_TEST_EMAIL</button>
+                <button class="btn-admin danger" onclick="confirmReset()"
+                  style="justify-content:flex-start;width:100%">RESET_DEMO_DATA</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../assets/js/supabase.js"></script>
+  <script>
+    function adminTheme() {
+      const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('dc-theme', t);
+    }
+    (function () { const t = localStorage.getItem('dc-theme') || 'dark'; document.documentElement.setAttribute('data-theme', t); })();
+
+    function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('open'); }
+
+    let currentProfile = null;
+    let demoMode = false;
+
+    function showAuthOverlay(kind) {
+      ['loading', 'login', 'denied'].forEach(k => {
+        const el = document.getElementById('auth-' + k);
+        if (el) el.style.display = (k === kind) ? 'flex' : 'none';
+      });
+    }
+    function hideAuthOverlays() {
+      ['loading', 'login', 'denied'].forEach(k => {
+        const el = document.getElementById('auth-' + k);
+        if (el) el.style.display = 'none';
+      });
+      document.getElementById('admin-layout').style.display = 'grid';
+    }
+    function enableDemoMode() {
+      demoMode = true;
+      document.getElementById('demo-banner').style.display = '';
+      document.getElementById('su-avatar').textContent = '[D]';
+      document.getElementById('su-name').textContent = 'DEMO_MODE';
+      document.getElementById('su-role').textContent = 'LOCAL_DATA';
+    }
+    function setupUserUI(profile) {
+      const name = profile.username || profile.discord_username || 'Admin';
+      document.getElementById('su-avatar').textContent = name.slice(0, 2).toUpperCase();
+      document.getElementById('su-name').textContent = name;
+      document.getElementById('su-role').textContent = profile.role === 'admin' ? 'SUPER_ADMIN' : (profile.role || 'USER');
+    }
+
+    async function bootAdmin() {
+      await initSupabase();
+      if (!isSupabaseConfigured()) { enableDemoMode(); hideAuthOverlays(); loadDashboard(); return; }
+      const user = await Auth.getUser();
+      if (!user) { showAuthOverlay('login'); return; }
+      currentProfile = await Auth.getCurrentProfile();
+      if (!currentProfile || currentProfile.role !== 'admin') { showAuthOverlay('denied'); return; }
+      setupUserUI(currentProfile);
+      hideAuthOverlays();
+      loadDashboard();
+    }
+    function logoutAndReturn() { Auth.logout().then(() => { window.location.href = '../index.html'; }); }
+
+    // ---- Email/password login (in addition to Discord) ----
+    let authMode = 'login'; // 'login' | 'signup'
+
+    function toggleAuthMode(e) {
+      if (e) e.preventDefault();
+      authMode = authMode === 'login' ? 'signup' : 'login';
+      document.getElementById('email-submit-btn').textContent = authMode === 'login' ? 'CONNEXION' : 'CREER_LE_COMPTE';
+      document.getElementById('auth-mode-toggle').textContent = authMode === 'login' ? 'Pas de compte ? Creer un compte' : 'Deja un compte ? Se connecter';
+      const errEl = document.getElementById('login-error');
+      errEl.style.display = 'none';
+      return false;
+    }
+    window.toggleAuthMode = toggleAuthMode;
+
+    async function handleEmailLogin(e) {
+      if (e) e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      const btn = document.getElementById('email-submit-btn');
+      if (!email || !password) return false;
+
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = authMode === 'login' ? 'CONNEXION...' : 'CREATION...';
+
+      let result;
+      if (authMode === 'signup') {
+        result = await Auth.signUpWithEmail(email, password);
+        if (result) showToast('Compte cree — si la confirmation par email est active, verifiez votre boite mail.', 'success');
+      } else {
+        result = await Auth.loginWithEmail(email, password);
+      }
+
+      btn.disabled = false;
+      btn.textContent = original;
+
+      if (!result) {
+        errEl.textContent = authMode === 'login' ? 'Email ou mot de passe incorrect.' : "Impossible de creer le compte.";
+        errEl.style.display = 'block';
+        return false;
+      }
+
+      // A session may already exist (login), or may require email confirmation (signup).
+      showAuthOverlay('loading');
+      await bootAdmin();
+      return false;
+    }
+    window.handleEmailLogin = handleEmailLogin;
+
+    const pages = ['dashboard', 'orders', 'users', 'services', 'testimonials', 'settings'];
+    const titles = { dashboard: 'Dashboard', orders: 'Commandes', users: 'Utilisateurs', services: 'Services', testimonials: 'Temoignages', settings: 'Parametres' };
+    let currentPage = 'dashboard';
+
+    function showPage(page, linkEl) {
+      pages.forEach(p => { const el = document.getElementById('page-' + p); if (el) el.style.display = p === page ? '' : 'none'; });
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      if (linkEl) linkEl.classList.add('active');
+      document.getElementById('page-title').textContent = titles[page] || page;
+      currentPage = page;
+      loadPageData(page);
+      document.querySelector('.sidebar').classList.remove('open');
+      return false;
+    }
+    function loadPageData(page) {
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'orders') loadOrders();
+      if (page === 'users') loadUsers();
+      if (page === 'services') loadServices();
+      if (page === 'testimonials') loadTestimonials();
+      if (page === 'settings') { loadSettingsStatus(); loadSiteSettings(); }
+    }
+
+    const statusLabels = { pending: 'En attente', in_progress: 'En cours', completed: 'Terminee', cancelled: 'Annulee' };
+    const statusClass = { pending: 'tag-pending', in_progress: 'tag-discord', completed: 'tag-active', cancelled: 'tag-inactive' };
+    const serviceClass = { discord: 'tag-discord', web: 'tag-web', bot: 'tag-bot', other: 'tag-other' };
+    const serviceLabels = { discord: 'Discord', web: 'Web', bot: 'Bot', other: 'Autre' };
+
+    function statusTag(s) { return `<span class="tag ${statusClass[s] || 'tag-pending'}">${statusLabels[s] || s || '—'}</span>`; }
+    function serviceTag(s) { return `<span class="tag ${serviceClass[s] || 'tag-other'}">${serviceLabels[s] || s || '—'}</span>`; }
+    function fmt(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    function clientCell(o) {
+      const primary = o.name || o.user || '—';
+      const secondary = [o.discord, o.email].filter(Boolean).filter(v => v !== primary).join(' · ');
+      return `<div style="font-weight:600;font-size:.84rem">${primary}</div>${secondary ? `<div style="color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.65rem">${secondary}</div>` : ''}`;
+    }
+
+    async function loadDashboard() {
+      const stats = await DB.getStats();
+      document.getElementById('stat-orders').textContent = stats.totalOrders;
+      document.getElementById('stat-pending').textContent = stats.pendingOrders;
+      document.getElementById('stat-users').textContent = stats.totalUsers;
+      document.getElementById('pending-badge').textContent = stats.pendingOrders;
+      allOrders = await DB.getOrders();
+      const tbody = document.getElementById('recent-orders-body');
+      if (!allOrders.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:\'Space Mono\',monospace;font-size:.7rem">NO_ORDERS_FOUND</td></tr>'; return; }
+      tbody.innerHTML = allOrders.slice(0, 5).map(o => `
+        <tr>
+          <td><span style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--cyan)">#${o.id}</span></td>
+          <td>${clientCell(o)}</td>
+          <td>${serviceTag(o.service)}</td>
+          <td>${statusTag(o.status)}</td>
+          <td style="color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.68rem">${fmt(o.created_at)}</td>
+          <td>
+            <button class="btn-admin ghost" style="padding:.25rem .55rem;font-size:.62rem" onclick="quickStatus('${o.id}','completed')">[OK]</button>
+            <button class="btn-admin ghost" style="padding:.25rem .55rem;font-size:.62rem" onclick="quickStatus('${o.id}','in_progress')">[WIP]</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    let allOrders = [];
+    async function loadOrders() { allOrders = await DB.getOrders(); renderOrders(allOrders); }
+    function renderOrders(orders) {
+      const tbody = document.getElementById('orders-body');
+      if (!orders.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:\'Space Mono\',monospace;font-size:.7rem">NO_ORDERS_FOUND</td></tr>'; return; }
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td><span style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--cyan)">#${o.id}</span></td>
+          <td>${clientCell(o)}</td>
+          <td>${serviceTag(o.service)}</td>
+          <td style="max-width:180px;color:var(--text-sub);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.description || '—'}</td>
+          <td>${statusTag(o.status)}</td>
+          <td style="color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.65rem">${fmt(o.created_at)}</td>
+          <td style="display:flex;gap:.35rem;flex-wrap:wrap">
+            <select class="admin-select" style="padding:.2rem .4rem;font-size:.65rem;width:auto" onchange="quickStatus('${o.id}',this.value)">
+              <option value="">STATUS...</option>
+              <option value="pending">PENDING</option>
+              <option value="in_progress">IN_PROGRESS</option>
+              <option value="completed">COMPLETED</option>
+              <option value="cancelled">CANCELLED</option>
+            </select>
+            <button class="btn-admin danger" style="padding:.2rem .45rem;font-size:.62rem" onclick="deleteOrder('${o.id}')">[DEL]</button>
+          </td>
+        </tr>`).join('');
+    }
+    function filterOrders(status, btn) {
+      document.querySelectorAll('#page-orders .active-filter').forEach(b => b.classList.remove('active-filter'));
+      if (btn) btn.classList.add('active-filter');
+      renderOrders(status === 'all' ? allOrders : allOrders.filter(o => o.status === status));
+    }
+    function searchOrders(q) {
+      const query = q.toLowerCase();
+      renderOrders(allOrders.filter(o => (o.name || '').toLowerCase().includes(query) || (o.discord || '').toLowerCase().includes(query) || (o.description || '').toLowerCase().includes(query) || (o.service || '').toLowerCase().includes(query)));
+    }
+    async function quickStatus(id, status) {
+      const o = allOrders.find(o => String(o.id) === String(id));
+      if (o) o.status = status;
+      await DB.updateOrderStatus(id, status);
+      if (currentPage === 'dashboard') loadDashboard();
+      if (currentPage === 'orders') renderOrders(allOrders);
+    }
+    async function deleteOrder(id) {
+      if (!confirm('DELETE order #' + id + ' ?')) return;
+      const ok = await DB.deleteOrder(id);
+      if (!ok) return;
+      allOrders = allOrders.filter(o => String(o.id) !== String(id));
+      renderOrders(allOrders);
+      showToast('Commande supprimee', 'success');
+    }
+
+    let allUsers = [];
+    async function loadUsers() { allUsers = await DB.getProfiles(); renderUsers(allUsers); }
+    function renderUsers(users) {
+      const tbody = document.getElementById('users-body');
+      if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:\'Space Mono\',monospace;font-size:.7rem">NO_USERS_FOUND</td></tr>'; return; }
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:.55rem">
+            <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--blue-dim),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:.65rem;color:#fff;flex-shrink:0">${(u.username || u.name || '?')[0].toUpperCase()}</div>
+            <span style="font-weight:600;font-size:.84rem">${u.username || u.name || '—'}</span>
+          </div></td>
+          <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--cyan)">${u.discord_username || '—'}</td>
+          <td style="color:var(--text-muted);font-size:.78rem">${u.email || '—'}</td>
+          <td><span class="tag ${u.role === 'admin' ? 'tag-active' : u.role === 'mod' ? 'tag-discord' : 'tag-pending'}">${u.role || 'user'}</span></td>
+          <td><span class="tag ${u.status === 'active' ? 'tag-active' : 'tag-inactive'}">${u.status === 'active' ? 'ACTIVE' : 'INACTIVE'}</span></td>
+          <td style="color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.65rem">${fmt(u.created_at)}</td>
+          <td style="display:flex;gap:.35rem">
+            <select class="admin-select" style="padding:.2rem .4rem;font-size:.65rem;width:auto" onchange="changeRole('${u.id}',this.value)">
+              <option value="">ROLE...</option>
+              <option value="user">USER</option>
+              <option value="mod">MOD</option>
+              <option value="admin">ADMIN</option>
+            </select>
+            <button class="btn-admin danger" style="padding:.2rem .45rem;font-size:.62rem" onclick="banUser('${u.id}')">[BAN]</button>
+          </td>
+        </tr>`).join('');
+    }
+    function searchUsers(q) {
+      const query = q.toLowerCase();
+      renderUsers(allUsers.filter(u => (u.username || '').toLowerCase().includes(query) || (u.email || '').toLowerCase().includes(query) || (u.discord_username || '').toLowerCase().includes(query)));
+    }
+    async function changeRole(id, role) {
+      if (!role) return;
+      const ok = await DB.updateProfile(id, { role });
+      if (ok) { const u = allUsers.find(u => String(u.id) === String(id)); if (u) u.role = role; renderUsers(allUsers); }
+    }
+    async function banUser(id) {
+      if (!confirm('BAN user ' + id + ' ?')) return;
+      const ok = await DB.updateProfile(id, { status: 'inactive' });
+      if (ok) { const u = allUsers.find(u => String(u.id) === String(id)); if (u) u.status = 'inactive'; renderUsers(allUsers); showToast('User banned', 'info'); }
+    }
+
+    let services = [];
+    async function loadServices() { services = await DB.getServices(); renderServices(); }
+    function renderServices() {
+      const tbody = document.getElementById('services-body');
+      if (!services.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:\'Space Mono\',monospace;font-size:.7rem">NO_SERVICES_FOUND</td></tr>'; return; }
+      tbody.innerHTML = services.map(s => `
+        <tr>
+          <td style="font-family:'Space Mono',monospace;font-size:.75rem">${s.name}</td>
+          <td>${serviceTag(s.type)}</td>
+          <td><label class="toggle"><input type="checkbox" ${s.active ? 'checked' : ''} onchange="toggleService('${s.id}',this.checked)" /><span class="toggle-slider"></span></label></td>
+          <td><button class="btn-admin danger" style="padding:.2rem .45rem;font-size:.62rem" onclick="deleteService('${s.id}')">[DEL]</button></td>
+        </tr>`).join('');
+    }
+    async function addService(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const payload = { icon: '', name: fd.get('name'), description: fd.get('description'), type: fd.get('type'), active: !!fd.get('active'), sort_order: services.length + 1 };
+      const created = await DB.createService(payload);
+      if (created) { services.push(created); renderServices(); e.target.reset(); showToast('Service ajoute', 'success'); }
+    }
+    async function toggleService(id, val) {
+      const s = services.find(s => String(s.id) === String(id)); if (s) s.active = val;
+      await DB.updateService(id, { active: val });
+      showToast(`Service ${val ? 'active' : 'desactive'}`, 'info');
+    }
+    async function deleteService(id) {
+      if (!confirm('DELETE service ' + id + ' ?')) return;
+      const ok = await DB.deleteService(id);
+      if (!ok) return;
+      services = services.filter(s => String(s.id) !== String(id));
+      renderServices(); showToast('Service supprime', 'success');
+    }
+
+    let testis = [];
+    async function loadTestimonials() { testis = await DB.getTestimonials(); renderTestis(); }
+    async function addTesti(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const payload = { name: fd.get('name'), role: fd.get('role'), stars: parseInt(fd.get('stars'), 10) || 5, text: fd.get('text') };
+      const created = await DB.createTestimonial(payload);
+      if (created) { testis.unshift(created); renderTestis(); e.target.reset(); showToast('Temoignage ajoute', 'success'); }
+    }
+    function renderTestis() {
+      const el = document.getElementById('testi-list');
+      if (!testis.length) { el.innerHTML = '<p style="color:var(--text-muted);font-family:\'Space Mono\',monospace;font-size:.7rem;text-align:center;padding:1rem">NO_TESTIMONIALS_FOUND</p>'; return; }
+      el.innerHTML = testis.map(t => `
+        <div style="padding:1rem;background:var(--bg);border:1px solid var(--border);position:relative">
+          <button onclick="deleteTesti('${t.id}')" style="position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:'Space Mono',monospace;font-size:.7rem">[X]</button>
+          <div style="color:var(--blue);font-family:'Space Mono',monospace;font-size:.72rem;margin-bottom:.3rem">${'*'.repeat(t.stars || 5)}</div>
+          <p style="font-size:.8rem;color:var(--text-sub);margin-bottom:.5rem">"${t.text}"</p>
+          <div style="font-family:'Space Mono',monospace;font-size:.72rem">${t.name} <span style="color:var(--text-muted)">— ${t.role || ''}</span></div>
+        </div>`).join('');
+    }
+    async function deleteTesti(id) {
+      if (!confirm('DELETE testimonial ?')) return;
+      const ok = await DB.deleteTestimonial(id);
+      if (!ok) return;
+      testis = testis.filter(t => String(t.id) !== String(id));
+      renderTestis(); showToast('Temoignage supprime', 'success');
+    }
+
+    function loadSettingsStatus() {
+      const el = document.getElementById('sb-status'); if (!el) return;
+      if (!isSupabaseConfigured()) { el.textContent = '[DEMO] Supabase non connecte'; el.style.color = '#fbbf24'; }
+      else { el.textContent = '[OK] Connecte a ' + SUPABASE_URL; el.style.color = 'var(--green)'; }
+    }
+    async function testSupabase() {
+      if (!isSupabaseConfigured()) { showToast('Mode demo — Supabase non configure', 'info'); return; }
+      try { const { error } = await _supabaseClient.from('orders').select('id').limit(1); if (error) showToast('ERR: ' + error.message, 'error'); else showToast('Connexion Supabase OK', 'success'); }
+      catch (e) { showToast('ERR: ' + e.message, 'error'); }
+    }
+    async function loadSiteSettings() {
+      const s = await DB.getSiteSettings();
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+      set('site-name-input', s.site_name);
+      set('tagline-input', s.tagline);
+      set('discord-invite-input', s.discord_invite_url);
+      set('discord-client-id-input', s.discord_client_id);
+      const maint = document.getElementById('maintenance-toggle'); if (maint) maint.checked = !!s.maintenance_mode;
+      const accept = document.getElementById('accept-orders-toggle'); if (accept) accept.checked = !!s.accept_orders;
+    }
+
+    async function saveSiteSettings() {
+      const updates = {
+        site_name: document.getElementById('site-name-input').value,
+        tagline: document.getElementById('tagline-input').value,
+        discord_invite_url: document.getElementById('discord-invite-input').value,
+        maintenance_mode: document.getElementById('maintenance-toggle').checked,
+        accept_orders: document.getElementById('accept-orders-toggle').checked
+      };
+      await DB.updateSiteSettings(updates);
+    }
+
+    async function saveDiscordConfig() {
+      const updates = { discord_client_id: document.getElementById('discord-client-id-input').value };
+      await DB.updateSiteSettings(updates);
+      showToast('Client ID sauvegarde. Le provider Discord doit rester configure dans Supabase → Auth → Providers.', 'info', 5000);
+    }
+
+    async function flushCache() {
+      try {
+        if (window.caches && caches.keys) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+      } catch (e) { /* no cache API available, ignore */ }
+      await loadPageData(currentPage);
+      showToast('Cache vide et donnees rechargees', 'success');
+    }
+
+    async function sendTestEmail() {
+      const email = currentProfile?.email;
+      if (!email) { showToast('Aucun email associe a ce compte', 'error'); return; }
+      if (!isSupabaseConfigured()) { showToast('Email de test envoye (mode demo)', 'info'); return; }
+      await Auth.resetPassword(email);
+    }
+
+    function exportData() {
+      const data = JSON.stringify({ orders: allOrders, users: allUsers, services, testimonials: testis }, null, 2);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+      a.download = `devcenter-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click(); showToast('Export telecharge', 'success');
+    }
+    function confirmReset() {
+      if (!demoMode) { showToast('RESET_DEMO_DATA n\'est disponible qu\'en mode demo (Supabase non configure)', 'info'); return; }
+      if (!confirm('RESET demo data ?')) return;
+      loadPageData(currentPage); showToast('Donnees rechargees', 'info');
+    }
+    function confirmLogout() { if (!confirm('LOGOUT ?')) return; if (demoMode) { window.location.href = '../index.html'; return; } Auth.logout().then(() => { window.location.href = '../index.html'; }); }
+    function refreshData() { loadPageData(currentPage); showToast('Donnees actualisees', 'info'); }
+
+    function showToast(msg, type = 'info', duration = 3000) {
+      let c = document.getElementById('toast-container');
+      if (!c) { c = document.createElement('div'); c.id = 'toast-container'; c.className = 'toast-container'; document.body.appendChild(c); }
+      const icons = { success: '[OK]', error: '[ERR]', info: '[INFO]' };
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span style="color:var(--cyan);flex-shrink:0;font-family:'Space Mono',monospace">${icons[type] || '>'}</span><span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.cssText = 'opacity:0;transform:translateX(20px);transition:.3s'; setTimeout(() => t.remove(), 300); }, duration);
+    }
+    window.showToast = showToast;
+
+    document.addEventListener('DOMContentLoaded', bootAdmin);
+  </script>
+</body>
+
+</html>
